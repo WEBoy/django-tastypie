@@ -575,6 +575,14 @@ class RelatedField(ApiField):
         bundle = fk_resource.build_bundle(obj=obj, request=request)
         return fk_resource.full_dehydrate(bundle)
 
+    def resource_from_id(self, fk_resource, value, request=None, related_obj=None, related_name=None):
+        """
+        Given an integer as ID
+        """
+        obj = fk_resource._meta.object_class.objects.get(pk=value)
+        bundle = fk_resource.build_bundle(obj=obj, request=request)
+        return fk_resource.full_dehydrate(bundle)
+
     def build_related_resource(self, value, request=None, related_obj=None, related_name=None):
         """
         Returns a bundle of data built by the related resource, usually via
@@ -604,6 +612,10 @@ class RelatedField(ApiField):
         elif hasattr(value, 'pk'):
             # We've got an object with a primary key.
             return self.resource_from_pk(self.fk_resource, value, **kwargs)
+        elif isinstance(value, int):
+            return self.resource_from_id(self.fk_resource, value, **kwargs)
+            # We got a valid pk as int
+            return value
         else:
             raise ApiFieldError("The '%s' field was given data that was not a URI, not a dictionary-alike and does not have a 'pk' attribute: %s." % (self.instance_name, value))
 
